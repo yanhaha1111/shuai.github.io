@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://yanhaha1111.github.io/shuai.github.io/</id>
+    <title>帅气的小帅啊</title>
+    <updated>2021-02-22T06:59:31.597Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://yanhaha1111.github.io/shuai.github.io/"/>
+    <link rel="self" href="https://yanhaha1111.github.io/shuai.github.io/atom.xml"/>
+    <subtitle>路漫漫其修远兮，吾将上下而求索</subtitle>
+    <logo>https://yanhaha1111.github.io/shuai.github.io/images/avatar.png</logo>
+    <icon>https://yanhaha1111.github.io/shuai.github.io/favicon.ico</icon>
+    <rights>All rights reserved 2021, 帅气的小帅啊</rights>
+    <entry>
+        <title type="html"><![CDATA[percona模版监控mysql]]></title>
+        <id>https://yanhaha1111.github.io/shuai.github.io/post/percona-mo-ban-jian-kong-mysql/</id>
+        <link href="https://yanhaha1111.github.io/shuai.github.io/post/percona-mo-ban-jian-kong-mysql/">
+        </link>
+        <updated>2021-02-20T18:38:25.000Z</updated>
+        <content type="html"><![CDATA[<pre><code class="language-cpp">https://www.qstack.com.cn/archives/213.html
+</code></pre>
+<h2 id="1安装php环境">1.安装php环境</h2>
+<p>percona需要php环境</p>
+<pre><code class="language-csharp">[root@m01 /data/soft]# yum install php php-mysql -y
+</code></pre>
+<h2 id="2下载软件">2.下载软件</h2>
+<figure data-type="image" tabindex="1"><img src="https:////upload-images.jianshu.io/upload_images/14248468-7b1acd1996119ac2.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1200/format/webp" alt="img" loading="lazy"></figure>
+<figure data-type="image" tabindex="2"><img src="https:////upload-images.jianshu.io/upload_images/14248468-1e99a6aa631efb9b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1200/format/webp" alt="img" loading="lazy"></figure>
+<p>注意，安装完成后会有提示模版的路径位置</p>
+<pre><code class="language-ruby">[root@m01 ~]# cd /data/soft/
+[root@m01 /data/soft]# wget https://www.percona.com/downloads/percona-monitoring-plugins/percona-monitoring-plugins-1.1.8/binary/redhat/7/x86_64/percona-zabbix-templates-1.1.8-1.noarch.rpm
+[root@m01 /data/soft]# rpm -ivh percona-zabbix-templates-1.1.8-1.noarch.rpm 
+警告：percona-zabbix-templates-1.1.8-1.noarch.rpm: 头V4 DSA/SHA1 Signature, 密钥 ID cd2efd2a: NOKEY
+准备中...                          ################################# [100%]
+正在升级/安装...
+   1:percona-zabbix-templates-1.1.8-1 ################################# [100%]
+
+Scripts are installed to /var/lib/zabbix/percona/scripts
+Templates are installed to /var/lib/zabbix/percona/templates
+</code></pre>
+<h2 id="3查看目录">3.查看目录</h2>
+<p>进入安装目录会发现有2个目录，一个是脚本目录，一个是模版目录</p>
+<pre><code class="language-csharp">[root@m01 ~]# cd /var/lib/zabbix/percona/
+[root@m01 /var/lib/zabbix/percona]# tree
+.
+├── scripts
+│   ├── get_mysql_stats_wrapper.sh
+│   └── ss_get_mysql_stats.php
+└── templates
+    ├── userparameter_percona_mysql.conf
+    └── zabbix_agent_template_percona_mysql_server_ht_2.0.9-sver1.1.8.xml
+</code></pre>
+<p>其中脚本目录里有2个脚本，用来获取数据库信息</p>
+<pre><code class="language-csharp">[root@m01 /var/lib/zabbix/percona]# cd scripts/
+[root@m01 /var/lib/zabbix/percona/scripts]# ls
+get_mysql_stats_wrapper.sh  ss_get_mysql_stats.php
+</code></pre>
+<h2 id="4修改get_mysql_stats_wrappersh">4.修改get_mysql_stats_wrapper.sh</h2>
+<p>修改get_mysql_stats_wrapper数据库登陆信息<br>
+第19行添加mysql账号密码</p>
+<pre><code class="language-dart">[root@m01 v]# sed -n '19p' get_mysql_stats_wrapper.sh 
+    RES=`HOME=~zabbix mysql -uroot -p123123 -e 'SHOW SLAVE STATUS\G' | egrep '(Slave_IO_Running|Slave_SQL_Running):' | awk -F: '{print $2}' | tr '\n' 
+</code></pre>
+<h2 id="5修改ss_get_mysql_statsphp">5.修改ss_get_mysql_stats.php</h2>
+<pre><code class="language-php">[root@m01 /var/lib/zabbix/percona/scripts]# sed -n '30,31p' ss_get_mysql_stats.php 
+$mysql_user = 'root';
+$mysql_pass = '123123';
+</code></pre>
+<h2 id="6复制自定义监控项配置文件到zabbix目录">6.复制自定义监控项配置文件到zabbix目录</h2>
+<pre><code class="language-csharp">[root@m01 ~]# cd /var/lib/zabbix/percona/templates/
+[root@m01 /var/lib/zabbix/percona/templates]# cp userparameter_percona_mysql.conf /etc/zabbix/zabbix_agentd.d/
+[root@m01 /var/lib/zabbix/percona/templates]# cd /etc/zabbix/zabbix_agentd.d/
+[root@m01 /etc/zabbix/zabbix_agentd.d]# ls
+userparameter_mysql.conf  userparameter_percona_mysql.conf
+</code></pre>
+<h2 id="7重启agent">7.重启agent</h2>
+<pre><code class="language-csharp">[root@m01 ~]# systemctl restart zabbix-agent 
+</code></pre>
+<h2 id="8测试key">8.测试key</h2>
+<pre><code class="language-css">[root@m01 ~]# zabbix_get -s 192.168.5.50 -k MySQL.Sort-scan
+24
+</code></pre>
+<h2 id="9导入模版">9.导入模版</h2>
+<p>官方自带的模版有点问题，需要先装在2.x版本然后导出来，这里使用网友已经修改好的模版上传</p>
+<pre><code class="language-cpp">http://pan.baidu.com/s/1pL1wDYj
+</code></pre>
+<figure data-type="image" tabindex="3"><img src="https:////upload-images.jianshu.io/upload_images/14248468-1460dad84fcf4215.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1200/format/webp" alt="img" loading="lazy"></figure>
+<h2 id="10主机链接模版">10.主机链接模版</h2>
+<figure data-type="image" tabindex="4"><img src="https:////upload-images.jianshu.io/upload_images/14248468-043e5a2bfdbae0c8.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1200/format/webp" alt="img" loading="lazy"></figure>
+<h2 id="xx报错解决">xx.报错解决</h2>
+<p>查看监控发现没有数据显示不支持类型<br>
+查看zabbix-server发现因为tmp的文件没有权限，因为刚才手动执行了脚本，所以文件属性是root，将文件删除后由zabbix自己创建解决问题<br>
+报错日志如下：</p>
+<pre><code class="language-bash">2846:20190811:202708.785 item &quot;Zabbix server:MySQL.State-init&quot; became not supported: Value &quot;rm: 无法删除&quot;/tmp/localhost-mysql_cacti_stats.txt&quot;: 不允许的操作
+0&quot; of type &quot;string&quot; is not suitable for value type &quot;Numeric (float)&quot;
+  2843:20190811:202709.787 item &quot;Zabbix server:MySQL.State-locked&quot; became not supported: Value &quot;rm: 无法删除&quot;/tmp/localhost-mysql_cacti_stats.txt&quot;: 不允许的操作
+0&quot; of type &quot;string&quot; is not suitable for value type &quot;Numeric (float)&quot;
+  2844:20190811:202710.788 item &quot;Zabbix server:MySQL.State-login&quot; became not supported: Value &quot;rm: 无法删除&quot;/tmp/localhost-mysql_cacti_stats.txt&quot;: 不允许的操作
+0&quot; of type &quot;string&quot; is not suitable for value type &quot;Numeric (float)&quot;
+</code></pre>
+]]></content>
+    </entry>
+</feed>
